@@ -4,7 +4,13 @@ CC := clang
 CC_INCLUDES += -I"."
 
 ifeq ($(PROJECT), tests)
+ifeq ($(BUILD), debug)
+CC_FLAGS += -O0
+CC_FLAGS += -ggdb
+else
 CC_FLAGS += -O3
+endif
+
 CC_ASAN += -fsanitize=address,undefined,leak
 CC_MSAN += -fsanitize=memory,undefined
 CC_CMOCKA += -lcmocka

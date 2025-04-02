@@ -1,3 +1,5 @@
+BUILD := debug
+
 TARGET_CC_SOURCES += itrlib/itrpriv.c
 
 TARGET_CMOCKA_CC_SOURCES += tests/cmocka/itrlib_test.c
