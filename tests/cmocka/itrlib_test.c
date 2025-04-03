@@ -49,6 +49,16 @@ void *cbreset_set_cbstep_dump(void *const itr, ...)
     return KIT_NULL;
 }
 
+int counter_cbstart_incr = 0;
+
+void *cbstart_incr(void *const itr, ...)
+{
+    KIT_UNUSED(itr);
+
+    counter_cbstart_incr++;
+    return &counter_cbstart_incr;
+}
+
 int hello_iterator(char *test_message)
 {
     itrobj_t itr = KIT_NULL;
@@ -79,7 +89,11 @@ void dbg_dump(itrptr_t addr, size_t range)
     itrfree(&itr);
 }
 
-int8_t test_array[18];
+#define TEST_ARRAY_SIZE 18
+#if (TEST_ARRAY_SIZE % 2) != 0
+#error "the size of the array must be even for the test"
+#endif
+int8_t test_array[TEST_ARRAY_SIZE];
 
 int enumeration_iterator(void)
 {
@@ -257,6 +271,96 @@ int index_navigation(void)
     return 0;
 }
 
+int autoreset_base(void)
+{
+    int value = 5;
+    itrobj_t itr = itrnew(ITR_F_AUTORST_BASE);
+
+    itrinit(itr, KIT_SIZEOFELM(test_array), KIT_TO(itrptr_t, test_array));
+    itr->step = cbstep_dump;
+    itr->finish = cbfinish_endline;
+    itridx(itr, value);
+    itrrun(itr, KIT_SIZEOF(test_array) - value);
+
+    assert_int_not_equal(value, KIT_TO(int, *itrread(itr)));
+    assert_int_equal(0, KIT_TO(int, *itrread(itr)));
+
+    itrfree(&itr);
+
+    return 0;
+}
+
+int autoreset_locate(void)
+{
+    int value = 5;
+    itrobj_t itr = itrnew(ITR_F_AUTORST_LOCATE);
+
+    itrinit(itr, KIT_SIZEOFELM(test_array), KIT_TO(itrptr_t, test_array));
+    itr->step = cbstep_dump;
+    itr->finish = cbfinish_endline;
+    itridx(itr, value);
+    itrrun(itr, KIT_SIZEOF(test_array) - value);
+
+    assert_int_equal(value, KIT_TO(int, *itrread(itr)));
+
+    itrfree(&itr);
+
+    return 0;
+}
+
+int bad_autoreset(void)
+{
+    itrobj_t itr = itrnew(ITR_F_AUTORST_BASE | ITR_F_AUTORST_LOCATE);
+    assert_ptr_equal(itr, NULL);
+
+    itrfree(&itr);
+
+    return 0;
+}
+
+int check_callback_start(void)
+{
+    int value = 0;
+    size_t count = 5;
+    itrobj_t itr = itrnew(ITR_F_NONE);
+
+    itrinit(itr, KIT_SIZEOFELM(test_array), KIT_TO(itrptr_t, test_array));
+    itr->start = cbstart_incr;
+    KIT_FOR(count)
+    {
+        itrrun(itr, value);
+    }
+    assert_int_equal(value, KIT_TO(int, *itrread(itr)));
+    assert_int_equal(KIT_TO(int, count), counter_cbstart_incr);
+
+    itrfree(&itr);
+    return 0;
+}
+
+int check_step_size(void)
+{
+    int numbof_steps_to_end = 0;
+    KIT_FOR(TEST_ARRAY_SIZE / 2)
+    {
+        itrobj_t itr = itrnew(ITR_F_NONE);
+        itrinit(itr, i, KIT_TO(itrptr_t, test_array));
+        itr->step = cbstep_dump;
+        itr->finish = cbfinish_endline;
+
+        numbof_steps_to_end = (i != 0) ? (TEST_ARRAY_SIZE / i) : TEST_ARRAY_SIZE;
+        for (int j = 0; j < numbof_steps_to_end; j++)
+        {
+            assert_int_equal(j * i, KIT_TO(int, *itrread(itr)));
+            itrpp(itr);
+        }
+        itr->finish(itr);
+
+        itrfree(&itr);
+    }
+
+    return 0;
+}
+
 void test_hello_iterator(void **state)
 {
     KIT_UNUSED(state);
@@ -315,6 +419,46 @@ void test_index_navigation(void **state)
     assert_int_equal(result, 0);
 }
 
+void test_autoreset_base(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = autoreset_base();
+    assert_int_equal(result, 0);
+}
+
+void test_autoreset_locate(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = autoreset_locate();
+    assert_int_equal(result, 0);
+}
+
+void test_bad_autoreset(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = bad_autoreset();
+    assert_int_equal(result, 0);
+}
+
+void test_check_callback_start(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = check_callback_start();
+    assert_int_equal(result, 0);
+}
+
+void test_check_step_size(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = check_step_size();
+    assert_int_equal(result, 0);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -324,6 +468,11 @@ int main(void)
         cmocka_unit_test(test_copy_iterator),
         cmocka_unit_test(test_data_conversion),
         cmocka_unit_test(test_index_navigation),
+        cmocka_unit_test(test_autoreset_base),
+        cmocka_unit_test(test_autoreset_locate),
+        cmocka_unit_test(test_bad_autoreset),
+        cmocka_unit_test(test_check_callback_start),
+        cmocka_unit_test(test_check_step_size),
     };
 
     itrfree(&itr_template);

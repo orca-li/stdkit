@@ -4,10 +4,11 @@
 #include "itrprot.h"
 
 typedef struct ITERATOR_CLASS {
-    const uintmax_t index;
+    const intmax_t index;
     uintmax_t limite;
     itrcallback_t step;
     itrcallback_t reset;
+    itrcallback_t start;
     itrcallback_t finish;
 } itrclass_t;
 typedef itrclass_t* itrobj_t;

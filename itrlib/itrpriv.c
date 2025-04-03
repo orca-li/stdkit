@@ -12,6 +12,7 @@ public
     uintmax_t limite;
     itrcallback_t step;
     itrcallback_t reset;
+    itrcallback_t start;
     itrcallback_t finish;
 
 private
@@ -22,6 +23,8 @@ private
 } itrclass_t;
 typedef itrclass_t* itrobj_t;
 
+void itrfree(itrobj_t *this);
+
 itrobj_t itrnew(const itrflags_t f)
 {
     itrobj_t this = (itrobj_t)malloc(sizeof(itrclass_t));
@@ -29,7 +32,11 @@ itrobj_t itrnew(const itrflags_t f)
     this->flags = f;
     this->step = KIT_NULL;
     this->reset = KIT_NULL;
+    this->start = KIT_NULL;
     this->finish = KIT_NULL;
+
+    if ((this->flags & (ITR_F_AUTORST_BASE | ITR_F_AUTORST_LOCATE)) == (ITR_F_AUTORST_BASE | ITR_F_AUTORST_LOCATE))
+        itrfree(&this);
 
     return this;
 }
@@ -90,11 +97,24 @@ void itrcpy(itrobj_t* dest, const itrobj_t src)
 
 void itrrun(const itrobj_t this, uintmax_t count)
 {
+    intmax_t index = 0;
+    if (this->flags == ITR_F_AUTORST_LOCATE)
+        index = this->index;
+
+    if (this->start)
+        this->start(this);
+
     while(count--)
         itrpp(this);
 
     if (this->finish)
         this->finish(this);
+
+    if (this->flags & ITR_F_AUTORST_BASE)
+        itrrst(this);
+    else if (this->flags & ITR_F_AUTORST_LOCATE)
+        itridx(this, index);
+
 }
 
 void itrwrite(const itrobj_t this, void* data, uintmax_t datasz)

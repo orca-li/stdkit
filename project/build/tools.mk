@@ -24,6 +24,11 @@ CC_DEFINES += -D"STDKIT_PATCH"=$(VERSION_PATCH)
 CC_FLAGS += -Wall
 CC_FLAGS += -Wextra
 CC_FLAGS += -Werror
+CC_FLAGS += -Wpedantic
+CC_FLAGS += -Wshadow
+CC_FLAGS += -Wfloat-equal
+CC_FLAGS += -Wformat=2
+CC_FLAGS += -Wunused-parameter
 
 # LD Utils
 LD := ld
