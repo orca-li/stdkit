@@ -232,6 +232,31 @@ int data_conversion(void)
     return 0;
 }
 
+int index_navigation(void)
+{
+    itrobj_t itr = itrnew(ITR_F_NONE);
+    itrinit(itr, KIT_SIZEOFELM(test_array), KIT_TO(itrptr_t, test_array));
+    itr->step = cbstep_dump;
+    itr->finish = cbfinish_endline;
+    itrrun(itr, KIT_SIZEOF(test_array));
+
+    assert_int_equal(KIT_TO(int, *itrhook(itr, 5)), 5);
+    itradd(itr, -KIT_INDEX_OFFSET);
+    assert_int_equal(KIT_TO(int, *itrread(itr)), KIT_LAST_INDEX(test_array));
+    itrrst(itr);
+    assert_int_equal(KIT_TO(int, *itrhook(itr, 0)), 0);
+    assert_int_equal(KIT_TO(int, *itrread(itr)), 0);
+    itradd(itr, 5);
+    assert_int_equal(KIT_TO(int, *itrhook(itr, 3)), 3);
+    assert_int_equal(KIT_TO(int, *itrread(itr)), 5);
+    KIT_FOR_EACH(test_array)
+        assert_int_equal(KIT_TO(int, *itrhook(itr, i)), KIT_ELEMENT(test_array));
+
+    itrfree(&itr);
+
+    return 0;
+}
+
 void test_hello_iterator(void **state)
 {
     KIT_UNUSED(state);
@@ -282,6 +307,14 @@ void test_data_conversion(void **state)
     assert_int_equal(result, 0);
 }
 
+void test_index_navigation(void **state)
+{
+    KIT_UNUSED(state);
+
+    int result = index_navigation();
+    assert_int_equal(result, 0);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -290,6 +323,7 @@ int main(void)
         cmocka_unit_test(test_index_iterator),
         cmocka_unit_test(test_copy_iterator),
         cmocka_unit_test(test_data_conversion),
+        cmocka_unit_test(test_index_navigation),
     };
 
     itrfree(&itr_template);

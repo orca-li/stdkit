@@ -25,6 +25,7 @@ void itrcpy(itrobj_t* dest, const itrobj_t src);    // memcpy(itr, src, sizeof(i
 itrstatus_t itrrun(const itrobj_t itr, uintmax_t count);
 
 void itrwrite(const itrobj_t, void* data, uintmax_t datasz);
+itrptr_t itrhook(const itrobj_t, intmax_t index);
 itrptr_t itrread(const itrobj_t);
 intmax_t itrcmp(const itrobj_t, void* data, uintmax_t datasz);
 

@@ -111,3 +111,13 @@ intmax_t itrcmp(const itrobj_t this, void* data, uintmax_t datasz)
 {
     return memcmp(this->locate, data, datasz);
 }
+
+itrptr_t itrhook(const itrobj_t this, intmax_t index)
+{
+    intmax_t current_index = this->index;
+    itrptr_t locate_index = NULL;
+    itridx(this, index);
+    locate_index = itrread(this);
+    itridx(this, current_index);
+    return locate_index;
+}
