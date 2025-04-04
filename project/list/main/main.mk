@@ -1,0 +1,6 @@
+BUILD := release
+
+TARGET_SRC_DIR := stdkit
+TARGET_CC_SOURCES += $(TARGET_SRC_DIR)/itrlib/itrpriv.c
+
+CC_SOURCES += $(TARGET_CC_SOURCES)

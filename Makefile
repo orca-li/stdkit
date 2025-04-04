@@ -11,4 +11,10 @@ main: $(MAIN)
 test: $(TEST)
 	@$(ECHO)
 
+install: $(INSTALL)
+	@$(ECHO)
+
+clean: $(CLEAN)
+	@$(ECHO)
+
 include project/build/targets.mk

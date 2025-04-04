@@ -1,6 +1,7 @@
 BUILD := debug
 
-TARGET_CC_SOURCES += itrlib/itrpriv.c
+TARGET_SRC_DIR := stdkit
+TARGET_CC_SOURCES += $(TARGET_SRC_DIR)/itrlib/itrpriv.c
 
 TARGET_CMOCKA_CC_SOURCES += tests/cmocka/itrlib_test.c
 TARGET_CMOCKA_CC_SOURCES += $(TARGET_CC_SOURCES)
